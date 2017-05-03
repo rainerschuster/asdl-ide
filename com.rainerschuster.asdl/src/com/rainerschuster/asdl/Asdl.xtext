@@ -1,0 +1,131 @@
+grammar com.rainerschuster.asdl.Asdl with org.eclipse.xtext.common.Terminals hidden(WS, SL_COMMENT)
+
+generate asdl "http://www.rainerschuster.com/asdl/Asdl"
+
+Model:
+	elements+=Element*
+;
+
+Element:
+	Module
+	| View
+;
+
+Module:
+	"module" name=ID Imports? "{" definitions+=Definition* "}"
+;
+
+fragment Imports *:
+	"(" imports+=Import* ")"
+;
+
+Import:
+	"imports" importedNamespace=[Module|ID]
+;
+
+// Note: attributes moved from SumType
+Definition:
+//	name=ID "=" type=Type ("attributes" Fields)?
+	name=LabelID "=" type=Type ("attributes" Fields)?
+;
+
+// Note: This is a helper rule. Constructor was only seen as FQN in a view.
+NamedElement:
+	Definition
+	| Constructor
+;
+
+Type:
+	PrimitiveType
+	| SumType
+	| ProductType
+;
+
+// Note: not in official grammar
+PrimitiveType:
+	{StringType} "string"
+	| {IntegerType} "int"
+	| {IdentifierType} "identifier"
+	// Where do they come from?
+	| {BytesType} "bytes"
+	| {ObjectType} "object"
+	| {SingletonType} "singleton"
+;
+
+// Note: not in official grammar
+ReferenceType:
+	reference=[NamedElement|QualifiedName]
+;
+
+QualifiedName:
+	(ID ".")? ID
+;
+
+ProductType:
+	Fields
+;
+
+SumType:
+	constructors+=Constructor ("|" constructors+=Constructor)*
+//	("attributes" Fields)?
+;
+
+Constructor:
+	name=ID Fields?
+;
+
+fragment Fields *:
+	"(" fields+=Field ("," fields+=Field)* ")"
+;
+
+Field:
+	/*(id=ID ".")?*/ type=IdOrType (option?="?" | sequence?="*")? label=LabelID?
+;
+
+IdOrType:
+	PrimitiveType
+	| ReferenceType
+;
+
+LabelID:
+	ID
+	| "imports"
+	| "module"
+	| "view"
+;
+
+// View Syntax
+
+View:
+	"view" name=ID "{" viewEntry+=ViewEntry* "}"
+;
+
+ViewEntity:
+	reference=[NamedElement|QualifiedName]
+	| "module" module=[Module|ID]
+;
+
+ViewProp:
+	"<=" property=ID
+;
+
+ViewEntry:
+	entity=ViewEntity property=ViewProp literalText+=LitTxt
+	| "{" entities+=ViewEntity* "}" property=ViewProp literalText+=LitTxt
+	| property=ViewProp "{" (entities+=ViewEntity literalText+=LitTxt)* "}"
+	| entity=ViewEntity "<=" "{" (ids+=ID literalText+=LitTxt)* "}"
+	// Note: Added the following alternative according to std-types.asdl
+	| {ViewEntry} "{" entities+=ViewEntity* "}" "<=" "{" (ids+=ID literalText+=LitTxt)* "}"
+;
+
+LitTxt:
+	ML_LIT_TXT
+	| SL_LIT_TX
+;
+
+@Override
+terminal SL_COMMENT 	: '--' !('\n'|'\r')* ('\r'? '\n')?;
+
+
+terminal ML_LIT_TXT	: '%%' -> '%%';
+terminal SL_LIT_TX 	: ':' !('\n'|'\r')* ('\r'? '\n')?;

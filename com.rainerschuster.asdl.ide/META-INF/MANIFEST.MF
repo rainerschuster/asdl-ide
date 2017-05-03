@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: com.rainerschuster.asdl.ide
+Bundle-Vendor: My Company
+Bundle-Version: 1.0.0.qualifier
+Bundle-SymbolicName: com.rainerschuster.asdl.ide; singleton:=true
+Bundle-ActivationPolicy: lazy
+Require-Bundle: com.rainerschuster.asdl,
+ org.eclipse.xtext.ide,
+ org.eclipse.xtext.xbase.ide,
+ org.antlr.runtime
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: com.rainerschuster.asdl.ide.contentassist.antlr.internal,
+ com.rainerschuster.asdl.ide.contentassist.antlr
+
